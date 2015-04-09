@@ -8,11 +8,7 @@ import akka.stream.scaladsl
 /**
  * Strategy that defines how a stream of streams should be flattened into a stream of simple elements.
  */
-abstract class FlattenStrategy[-T, U] {
-  /** Converts this Java DSL element to its Scala DSL counterpart. */
-  def asScala[S]: scaladsl.FlattenStrategy[S, U]
-
-}
+abstract class FlattenStrategy[-S, T] extends scaladsl.FlattenStrategy[S, T]
 
 object FlattenStrategy {
 
@@ -26,10 +22,6 @@ object FlattenStrategy {
   /**
    * INTERNAL API
    */
-  private[akka] final case class Concat[T]() extends FlattenStrategy[Source[T, _], T] {
-    override def asScala[S]: scaladsl.FlattenStrategy[S, T] =
-      scaladsl.FlattenStrategy.Concat[T]().asInstanceOf[scaladsl.FlattenStrategy[S, T]]
-
-  }
+  private[akka] final case class Concat[T]() extends FlattenStrategy[Source[T, _], T]
 
 }
