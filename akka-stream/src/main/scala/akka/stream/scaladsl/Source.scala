@@ -134,21 +134,6 @@ final class Source[+Out, +Mat](private[stream] override val module: Module)
    */
   def ++[Out2 >: Out, M](second: Source[Out2, M]): Source[Out2, (Mat, M)] = concat(second)
 
-  /**
-   * Applies given [[OperationAttributes]] to a given section.
-   */
-  def section[O, O2 >: Out, Mat2, Mat3](attributes: OperationAttributes, combine: (Mat, Mat2) ⇒ Mat3)(section: Flow[O2, O2, Unit] ⇒ Flow[O2, O, Mat2]): Source[O, Mat3] = {
-    val subFlow = section(Flow[O2]).module.carbonCopy.withAttributes(attributes).wrap()
-    new Source(
-      module
-        .growConnect(subFlow, shape.outlet, subFlow.shape.inlets.head, combine)
-        .replaceShape(SourceShape(subFlow.shape.outlets.head)))
-  }
-
-  def section[O, O2 >: Out, Mat2](attributes: OperationAttributes)(section: Flow[O2, O2, Unit] ⇒ Flow[O2, O, Mat2]): Source[O, Mat2] = {
-    this.section[O, O2, Mat2, Mat2](attributes, (parentm: Mat, subm: Mat2) ⇒ subm)(section)
-  }
-
   override def withAttributes(attr: OperationAttributes): Repr[Out, Mat] =
     new Source(module.withAttributes(attr).wrap())
 

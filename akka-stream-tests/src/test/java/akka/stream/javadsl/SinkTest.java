@@ -16,9 +16,6 @@ import scala.concurrent.Await;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class SinkTest extends StreamTest {
   public SinkTest() {
     super(actorSystemResource);

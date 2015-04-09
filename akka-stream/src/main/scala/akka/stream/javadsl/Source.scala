@@ -475,16 +475,6 @@ class Source[+Out, +Mat](delegate: scaladsl.Source[Out, Mat]) extends Graph[Sour
   def flatten[U](strategy: akka.stream.FlattenStrategy[Out, U]): javadsl.Source[U, Mat] =
     new Source(delegate.flatten(strategy))
 
-  /**
-   * Applies given [[OperationAttributes]] to a given section.
-   */
-  def section[O, M](attributes: OperationAttributes, section: japi.Function[javadsl.Flow[Out, Out, Unit], javadsl.Flow[Out, O, M]] @uncheckedVariance): javadsl.Source[O, M] =
-    new Source(delegate.section(attributes.asScala) {
-      val scalaToJava = (source: scaladsl.Flow[Out, Out, Unit]) ⇒ new javadsl.Flow(source)
-      val javaToScala = (source: javadsl.Flow[Out, O, M]) ⇒ source.asScala
-      scalaToJava andThen section.apply andThen javaToScala
-    })
-
   def withAttributes(attr: OperationAttributes): javadsl.Source[Out, Mat] =
     new Source(delegate.withAttributes(attr.asScala))
 

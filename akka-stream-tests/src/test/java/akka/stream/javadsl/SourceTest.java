@@ -23,13 +23,12 @@ import scala.concurrent.Future;
 import scala.concurrent.duration.FiniteDuration;
 import scala.runtime.BoxedUnit;
 import scala.util.Try;
-
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
-
 import static org.junit.Assert.assertEquals;
 
+@SuppressWarnings("serial")
 public class SourceTest extends StreamTest {
   public SourceTest() {
     super(actorSystemResource);

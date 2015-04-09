@@ -85,7 +85,7 @@ private[http] object HttpClient {
 
     val requestRendering: Flow[HttpRequest, ByteString, Unit] = Flow[HttpRequest]
       .map(RequestRenderingContext(_, remoteAddress))
-      .section(name("renderer"))(_.transform(() ⇒ requestRendererFactory.newRenderer))
+      .via(Flow[RequestRenderingContext].transform(() ⇒ requestRendererFactory.newRenderer).named("renderer"))
       .flatten(FlattenStrategy.concat)
 
     val methodBypass = Flow[HttpRequest].map(_.method)
@@ -110,8 +110,8 @@ private[http] object HttpClient {
       val terminationFanout = b.add(Broadcast[HttpResponse](2))
       val terminationMerge = b.add(new TerminationMerge)
 
-      val bytesOut = (terminationMerge.out ~>
-        requestRendering.section(name("errorLogger"))(_.transform(() ⇒ errorLogger(log, "Outgoing request stream error")))).outlet
+      val logger = Flow[ByteString].transform(() ⇒ errorLogger(log, "Outgoing request stream error")).named("errorLogger")
+      val bytesOut = (terminationMerge.out ~> requestRendering.via(logger)).outlet
 
       val bytesIn = responseParsingMerge.in0
 

@@ -268,24 +268,6 @@ final class Flow[-In, +Out, +Mat](private[stream] override val module: Module)
     source.via(this).toMat(sink)(Keep.both).run()
   }
 
-  // FIXME remove (in favor of .via)
-  def section[O, O2 >: Out, Mat2, Mat3](attributes: OperationAttributes, combine: (Mat, Mat2) ⇒ Mat3)(section: Flow[O2, O2, Unit] ⇒ Flow[O2, O, Mat2]): Flow[In, O, Mat3] = {
-    val subFlow = section(Flow[O2]).module.carbonCopy.withAttributes(attributes).wrap()
-    if (this.isIdentity) new Flow(subFlow).asInstanceOf[Flow[In, O, Mat3]]
-    else new Flow(
-      module
-        .growConnect(subFlow, shape.outlet, subFlow.shape.inlets.head, combine)
-        .replaceShape(FlowShape(shape.inlet, subFlow.shape.outlets.head)))
-  }
-
-  /**
-   * Applies given [[OperationAttributes]] to a given section.
-   */
-  // FIXME remove (in favor of .via)
-  def section[O, O2 >: Out, Mat2](attributes: OperationAttributes)(section: Flow[O2, O2, Unit] ⇒ Flow[O2, O, Mat2]): Flow[In, O, Mat2] = {
-    this.section[O, O2, Mat2, Mat2](attributes, Keep.right)(section)
-  }
-
 }
 
 object Flow extends FlowApply {

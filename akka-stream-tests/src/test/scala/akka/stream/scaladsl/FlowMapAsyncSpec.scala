@@ -115,10 +115,13 @@ class FlowMapAsyncSpec extends AkkaSpec {
     "resume after future failure" in {
       val c = StreamTestKit.SubscriberProbe[Int]()
       implicit val ec = system.dispatcher
-      val p = Source(1 to 5).section(supervisionStrategy(resumingDecider))(_.mapAsync(n ⇒ Future {
-        if (n == 3) throw new RuntimeException("err3") with NoStackTrace
-        else n
-      })).to(Sink(c)).run()
+      val p = Source(1 to 5)
+        .mapAsync(n ⇒ Future {
+          if (n == 3) throw new RuntimeException("err3") with NoStackTrace
+          else n
+        })
+        .withAttributes(supervisionStrategy(resumingDecider))
+        .to(Sink(c)).run()
       val sub = c.expectSubscription()
       sub.request(10)
       for (n ← List(1, 2, 4, 5)) c.expectNext(n)
@@ -128,10 +131,12 @@ class FlowMapAsyncSpec extends AkkaSpec {
     "resume when mapAsync throws" in {
       val c = StreamTestKit.SubscriberProbe[Int]()
       implicit val ec = system.dispatcher
-      val p = Source(1 to 5).section(supervisionStrategy(resumingDecider))(_.mapAsync(n ⇒
-        if (n == 3) throw new RuntimeException("err4") with NoStackTrace
-        else Future(n))).
-        to(Sink(c)).run()
+      val p = Source(1 to 5)
+        .mapAsync(n ⇒
+          if (n == 3) throw new RuntimeException("err4") with NoStackTrace
+          else Future(n))
+        .withAttributes(supervisionStrategy(resumingDecider))
+        .to(Sink(c)).run()
       val sub = c.expectSubscription()
       sub.request(10)
       for (n ← List(1, 2, 4, 5)) c.expectNext(n)
@@ -148,8 +153,9 @@ class FlowMapAsyncSpec extends AkkaSpec {
 
     "resume when future is completed with null" in {
       val c = StreamTestKit.SubscriberProbe[String]()
-      val p = Source(List("a", "b", "c")).section(supervisionStrategy(resumingDecider))(
-        _.mapAsync(elem ⇒ if (elem == "b") Future.successful(null) else Future.successful(elem)))
+      val p = Source(List("a", "b", "c"))
+        .mapAsync(elem ⇒ if (elem == "b") Future.successful(null) else Future.successful(elem))
+        .withAttributes(supervisionStrategy(resumingDecider))
         .to(Sink(c)).run()
       val sub = c.expectSubscription()
       sub.request(10)
